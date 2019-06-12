@@ -5,11 +5,23 @@ import { Router } from '@reach/router';
 import Posts from './Posts';
 import Nav from './Nav';
 import styled from 'styled-components';
-// Custom Consumer Hook
+const UserContext = React.createContext();
 
-// custom authentication hook for users
+export function UserProvider(props) {
+	const user = useAuth();
 
-function App() {
+	return <UserContext.Provider value={{ user }} {...props} />;
+}
+
+function useUser() {
+	const context = React.useContext(UserContext);
+	if (context === undefined) {
+		throw new Error(`useUser must be rendered within a UserProvider`);
+	}
+	return context;
+}
+
+function useAuth() {
 	const [user, setUser] = React.useState(null);
 	React.useEffect(() => {
 		return firebase.auth().onAuthStateChanged(auth => {
@@ -29,6 +41,11 @@ function App() {
 			}
 		});
 	}, []);
+	return user;
+}
+
+function App() {
+	const { user } = useUser();
 	return user ? (
 		<div>
 			<Nav user={user} />

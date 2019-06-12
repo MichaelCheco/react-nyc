@@ -1,25 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { db } from './firebase';
 import styled from 'styled-components';
 import { autoGrid } from './autoGrid';
 
-// `users/${userId}/posts`
-
-function Posts({ userId }) {
-	const [posts, setPosts] = React.useState(null);
+function useCollection(path) {
+	const [docs, setDocs] = React.useState([]);
 	React.useEffect(() => {
-		const collection = db.collection(`users/${userId}/posts`);
+		const collection = db.collection(path);
 		return collection.onSnapshot(snapshot => {
-			const posts = [];
-			snapshot.forEach(post => {
-				posts.push({
-					...post.data(),
-					id: post.id,
+			const docs = [];
+			snapshot.forEach(doc => {
+				docs.push({
+					...doc.data(),
+					id: doc.id,
 				});
 			});
-			setPosts(posts);
+			setDocs(docs);
 		});
-	}, [userId]);
+	}, [path]);
+	return docs;
+}
+
+function Posts({ userId }) {
+	const posts = useCollection(`users/${userId}/posts`);
 	if (!posts) return <p>Loading ....</p>;
 	return (
 		<Container>
@@ -46,30 +49,6 @@ const P = styled.p`
 	font-size: 16px;
 `;
 export default Posts;
-// function useCollection(path, orderBy, where = []) {
-// 	const [docs, setDocs] = useState([]);
-// 	const [queryField, queryOperator, queryValue] = where;
-// 	useEffect(() => {
-// 		let collection = db.collection(path);
-// 		if (orderBy) {
-// 			collection = collection.orderBy(orderBy);
-// 		}
-// 		if (queryField) {
-// 			collection = collection.where(queryField, queryOperator, queryValue);
-// 		}
-// 		return collection.onSnapshot(snapshot => {
-// 			const docs = [];
-// 			snapshot.forEach(doc => {
-// 				docs.push({
-// 					...doc.data(),
-// 					id: doc.id,
-// 				});
-// 			});
-// 			setDocs(docs);
-// 		});
-// 	}, [path, orderBy, queryField, queryOperator, queryValue]);
-// 	return docs;
-// }
 
 const Card = styled.div`
 	transition: box-shadow 0.3s;
